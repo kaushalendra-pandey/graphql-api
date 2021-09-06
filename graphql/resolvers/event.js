@@ -8,18 +8,21 @@ module.exports = {
         return events
     },
    
-    createEvent: async (args) => {
+    createEvent: async (args,req) => {
+        if (!req?.isAuth){
+            throw new Error("Not authenticated!")
+        }
         const event = new eventSchema({
             name:args?.eventInput?.name,
             place:args?.eventInput?.place,
             cost:args?.eventInput?.cost,
-            creator:"613651b6d91a247a79c0e03d"
+            creator:req?.user_id
         })
         try {
             await event.save()
             await event.populate("creator")
             const event_id = event._id
-            let user = await userSchema.findById("613651b6d91a247a79c0e03d")
+            let user = await userSchema.findById(req?.user_id)
             console.log(user)
             user.createdEvent.push(event_id)
             await user.save()
